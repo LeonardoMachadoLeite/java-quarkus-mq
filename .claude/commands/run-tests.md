@@ -3,6 +3,7 @@
 Run the Maven test suite with an optional filter. Arguments: $ARGUMENTS
 
 Parse $ARGUMENTS for any of the following flags (all optional):
+
 - A test class name or partial name (e.g., `RateLimiter`) → use `-Dtest=*{name}*`
 - `it` or `integration` → run only integration tests (`@QuarkusTest`, suffix `IT`) via `-Dit.test`
 - `unit` → run only unit tests (skip `@QuarkusTest`) via `-Dquarkus.test.profile=test -Dtest=!*IT`
@@ -13,27 +14,32 @@ Default (no arguments): run all tests.
 ## Commands to Execute
 
 ### All tests (default)
-```
+
+```bash
 mvn test
 ```
 
 ### Filter by class name (example: RateLimiter)
-```
+
+```bash
 mvn test -Dtest="*RateLimiter*"
 ```
 
 ### Integration tests only
-```
+
+```bash
 mvn test -Dtest="*IT"
 ```
 
 ### Single class by name
-```
+
+```bash
 mvn test -Dtest="<ClassName>"
 ```
 
 ### Verbose output
-```
+
+```bash
 mvn test -Dsurefire.useFile=false
 ```
 
@@ -47,4 +53,5 @@ mvn test -Dsurefire.useFile=false
 3. If Testcontainers fails to start (Docker not running), say so explicitly and suggest `docker-compose up -d rabbitmq postgres redis` first.
 4. If there are compilation errors, show them and do not report a test summary.
 
-Note: The `%test` Quarkus profile activates Quarkus DevServices for PostgreSQL and Redis automatically. RabbitMQ DevServices is not configured — integration tests that need RabbitMQ start their own container via Testcontainers in `@BeforeAll`.
+Note: The `%test` Quarkus profile activates Quarkus DevServices for PostgreSQL and Redis automatically.
+RabbitMQ DevServices is not configured — integration tests that need RabbitMQ start their own container via Testcontainers in `@BeforeAll`.

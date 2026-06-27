@@ -15,7 +15,7 @@ You are the test engineer for `java-quarkus-mq`. You write and review tests acro
 ## Test Stack
 
 | Layer | Tools | Location |
-|---|---|---|
+| --- | --- | --- |
 | Unit | JUnit 5, Mockito, `@PanacheMock` | `src/test/java/com/example/ratelimit/` |
 | Integration | `@QuarkusTest`, Testcontainers (auto via `%test` profile) | Same package, suffix `IT` |
 | API simulation | WireMock | Embedded in integration tests |

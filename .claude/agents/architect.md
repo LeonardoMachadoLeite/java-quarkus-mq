@@ -32,6 +32,7 @@ If the user proposes something that conflicts with these, explain why and offer 
 ## Package Conventions
 
 When proposing new code, place it in the correct package:
+
 - New domain objects (records, sealed types) → `domain/`
 - New REST endpoints → `producer/` (for `JobResource`) or a new resource class in `producer/`
 - New consumers → add `@Incoming` method to `MessageConsumer` in `consumer/`
@@ -43,6 +44,7 @@ When proposing new code, place it in the correct package:
 ## Adding a New Provider
 
 Always verify the user follows the 4-step checklist in CLAUDE.md. Do not proceed to implementation until all four steps are planned:
+
 1. `application.yaml` rate-limit config block
 2. `application.yaml` SmallRye incoming channel block
 3. `MessageConsumer` `@Incoming` method
@@ -58,6 +60,6 @@ Always verify the user follows the 4-step checklist in CLAUDE.md. Do not proceed
 ## How to Answer
 
 1. Read the relevant files before proposing changes.
-2. State which of the three architectural decisions your proposal touches (or confirm it does not).
-3. Show exact code changes, not pseudocode.
-4. If you must deviate from a convention, call it out explicitly and explain why.
+1. State which of the three architectural decisions your proposal touches (or confirm it does not).
+1. Show exact code changes, not pseudocode.
+1. If you must deviate from a convention, call it out explicitly and explain why.

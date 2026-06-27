@@ -11,7 +11,7 @@ If no argument is given, ask the user for the provider name before proceeding.
 Before writing any code, ask the user for these values (or use sensible defaults if they say "use defaults"):
 
 | Field | Description | Default |
-|---|---|---|
+| --- | --- | --- |
 | `requests-per-window` | Max requests in the window | 100 |
 | `window-duration` | ISO-8601 duration (e.g., `PT1S`, `PT1H`) | `PT1S` |
 | `burst-capacity` | Initial token count (burst allowance) | 20 |
@@ -26,6 +26,7 @@ Complete ALL four steps. Do not skip any.
 ### Step 1 — `application.yaml`: rate-limit config
 
 Add under `rate-limit.providers`:
+
 ```yaml
 rate-limit:
   providers:
@@ -41,6 +42,7 @@ rate-limit:
 ### Step 2 — `application.yaml`: SmallRye incoming channel
 
 Add under `mp.messaging.incoming`:
+
 ```yaml
 mp:
   messaging:
@@ -65,6 +67,7 @@ mp:
 ### Step 3 — `MessageConsumer.java`: add @Incoming method
 
 Add a new method following the exact pattern of existing provider methods:
+
 ```java
 @Incoming("<provider>-requests")
 @Blocking(ordered = false)

@@ -17,7 +17,7 @@ You are the observability specialist for `java-quarkus-mq`. Your domain is every
 All metrics are registered in `MetricsCollector` (gauges refreshed on a schedule) or inline via injected `MeterRegistry` (events). **Every metric must carry a `provider` label.**
 
 | Metric | Type | Labels | Where Emitted |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `jobs_submitted_total` | Counter | `provider`, `priority` | `JobService.submitJob()` |
 | `jobs_completed_total` | Counter | `provider`, `status` | `MessageConsumer.dispatchAndComplete()` and `handleRateLimitExceeded()` |
 | `jobs_processing_duration_seconds` | Timer | `provider` | `MessageConsumer.handleMessage()` via `Timer.Sample` |
@@ -29,6 +29,7 @@ All metrics are registered in `MetricsCollector` (gauges refreshed on a schedule
 ### Adding a New Metric
 
 For counters/timers emitted on events:
+
 ```java
 @Inject MeterRegistry meterRegistry;
 
@@ -42,6 +43,7 @@ sample.stop(meterRegistry.timer("my_operation_seconds", "provider", provider));
 ```
 
 For gauges that need periodic refresh, add to `MetricsCollector`:
+
 ```java
 @Inject RateLimiterService rateLimiterService;
 
@@ -55,7 +57,7 @@ Gauge.builder("my_new_gauge", () -> computeValue())
 All health checks implement `org.eclipse.microprofile.health.HealthCheck` and are in `observability/`.
 
 | Class | Type | What It Checks | Endpoint |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `RabbitMQHealthCheck` | `@Liveness` | AMQP connection can be established | `/q/health/live` |
 | `QueueDepthHealthCheck` | `@Readiness` | Queue depth below threshold for all providers | `/q/health/ready` |
 | `RedisHealthCheck` | `@Readiness` | Redis `PING` succeeds | `/q/health/ready` |

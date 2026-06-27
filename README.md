@@ -4,7 +4,7 @@ A Quarkus service that accepts arbitrary HTTP requests, queues them in RabbitMQ,
 
 ## Architecture
 
-```
+```text
 [Client]
    │
    ▼
@@ -30,7 +30,7 @@ A Quarkus service that accepts arbitrary HTTP requests, queues them in RabbitMQ,
 ## Tech Stack
 
 | Concern | Technology |
-|---|---|
+| --- | --- |
 | Runtime | Java 21 + Quarkus 3.17.4 |
 | Messaging | RabbitMQ 3.13 via SmallRye Reactive Messaging |
 | Rate limiting | Bucket4j 8.10 + Redis (Lettuce) |
@@ -80,6 +80,7 @@ Content-Type: application/json
 ```
 
 Response `202 Accepted`:
+
 ```json
 { "jobId": "uuid", "estimatedWait": "PT2S" }
 ```
@@ -105,7 +106,7 @@ GET /api/jobs/{id}
 ### Other endpoints
 
 | Method | Path | Description |
-|---|---|---|
+| --- | --- | --- |
 | `DELETE` | `/api/jobs/{id}` | Cancel a pending job |
 | `GET` | `/api/providers` | List providers and current rate-limit state |
 | `GET` | `/api/providers/{provider}/stats` | Queue depth, throughput, error rate |
@@ -139,7 +140,7 @@ Add a new provider by adding a new key under `rate-limit.providers` — the topo
 
 When `callbackUrl` is set, the service sends a signed `POST` after job completion:
 
-```
+```http
 X-Job-Id: <uuid>
 X-Signature: <HMAC-SHA256 of body>
 ```
@@ -149,7 +150,7 @@ The webhook sender retries up to 3 times with a fixed 2-second delay independent
 ## Observability
 
 | Endpoint | Description |
-|---|---|
+| --- | --- |
 | `GET /q/health` | Aggregated health (RabbitMQ, Redis, PostgreSQL, queue depth) |
 | `GET /q/health/live` | Liveness (RabbitMQ connectivity) |
 | `GET /q/health/ready` | Readiness (Redis, PostgreSQL, queue depth) |
@@ -158,7 +159,7 @@ The webhook sender retries up to 3 times with a fixed 2-second delay independent
 Key metrics exported:
 
 | Metric | Type |
-|---|---|
+| --- | --- |
 | `jobs_submitted_total` | Counter — labels: `provider`, `priority` |
 | `jobs_completed_total` | Counter — labels: `provider`, `status` |
 | `jobs_processing_duration_seconds` | Histogram — label: `provider` |
@@ -180,7 +181,7 @@ Tests use Quarkus Dev Services — PostgreSQL and Redis containers are started a
 ## Infrastructure Ports (local)
 
 | Service | Port |
-|---|---|
+| --- | --- |
 | Quarkus app | 8080 |
 | RabbitMQ AMQP | 5672 |
 | RabbitMQ management UI | 15672 |

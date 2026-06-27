@@ -19,7 +19,7 @@ These three decisions are locked. Do not change them without explicit user appro
 ## Tech Stack
 
 | Component | Technology | Version |
-|---|---|---|
+| --- | --- | --- |
 | Runtime | Java 21 + Quarkus | 3.17.4 |
 | Messaging | RabbitMQ + SmallRye Reactive Messaging | 3.13 |
 | Rate limiting | Bucket4j + Lettuce Redis backend | 8.10.1 / 6.4.0 |
@@ -35,7 +35,7 @@ These three decisions are locked. Do not change them without explicit user appro
 
 ## Package Structure
 
-```
+```text
 src/main/java/com/example/ratelimit/
 ├── config/          RabbitMQTopologyConfig (startup), RateLimitConfig (mapping)
 ├── domain/          Records: ApiRequest, ApiResponse, MessageEnvelope, SubmitJobRequest
@@ -55,27 +55,34 @@ src/main/java/com/example/ratelimit/
 ## Running Locally
 
 ### Prerequisites
+
 - Docker Desktop running
 - JDK 21 (`java -version` → `21.x`)
 - Maven 3.9+ (`mvn -version`)
 
 ### Start infrastructure (infra only, no app container)
-```
+
+```bash
 docker-compose up -d rabbitmq postgres redis
 ```
+
 Wait for all three to report `healthy`:
-```
+
+```bash
 docker-compose ps
 ```
 
 ### Dev mode (auto-reload, dev services not used — infra must be up)
-```
+
+```bash
 mvn quarkus:dev
 ```
+
 App starts on `http://localhost:8080`.
 
 ### Full stack via Docker Compose (builds app image)
-```
+
+```bash
 docker-compose up --build
 ```
 
@@ -85,7 +92,8 @@ docker-compose up --build
 
 When the user asks to add a provider (e.g., `twilio`), complete all four steps in order:
 
-**Step 1 — application.yaml: rate limit config**
+### Step 1 — application.yaml: rate limit config
+
 ```yaml
 rate-limit:
   providers:
@@ -98,7 +106,8 @@ rate-limit:
       max-retry-delay: PT30S
 ```
 
-**Step 2 — application.yaml: SmallRye incoming channel**
+### Step 2 — application.yaml: SmallRye incoming channel
+
 ```yaml
 mp:
   messaging:
@@ -120,7 +129,8 @@ mp:
         failure-strategy: reject
 ```
 
-**Step 3 — MessageConsumer.java: add @Incoming method**
+### Step 3 — MessageConsumer.java: add @Incoming method
+
 ```java
 @Incoming("twilio-requests")
 @Blocking(ordered = false)
@@ -136,12 +146,13 @@ public CompletionStage<Void> consumeTwilio(Message<String> message) {
 ## Testing Strategy
 
 | Layer | Tool | What to test |
-|---|---|---|
+| --- | --- | --- |
 | Unit | JUnit 5 + Mockito + `@PanacheMock` | Rate limiter logic, state machine transitions, serialization |
 | Integration | `@QuarkusTest` + Testcontainers (auto via `%test` profile) | Full flow end-to-end |
 | API simulation | WireMock | 200 OK, 429 with `Retry-After`, 5xx errors |
 
 ### Key scenarios every integration test file should cover
+
 1. Happy path: submit → queue → dispatch → poll → Completed
 2. Happy path: submit with `callbackUrl` → webhook received
 3. Rate limit hit → consumer backs off → eventual success
@@ -150,6 +161,7 @@ public CompletionStage<Void> consumeTwilio(Message<String> message) {
 6. RabbitMQ disconnect/reconnect: consumer resumes
 
 ### Test profile (`%test` in application.yaml)
+
 - PostgreSQL: Quarkus DevServices (Testcontainers) — no real DB needed
 - Redis: Quarkus DevServices (Testcontainers)
 - RabbitMQ: set `rabbitmq-host: localhost` and start a real container in `@BeforeAll`
@@ -169,7 +181,7 @@ public CompletionStage<Void> consumeTwilio(Message<String> message) {
 ## Prometheus Metrics Defined in This Codebase
 
 | Metric | Type | Labels |
-|---|---|---|
+| --- | --- | --- |
 | `jobs_submitted_total` | Counter | `provider`, `priority` |
 | `jobs_completed_total` | Counter | `provider`, `status` |
 | `jobs_processing_duration_seconds` | Timer | `provider` |

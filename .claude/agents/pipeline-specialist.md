@@ -14,7 +14,7 @@ You are the pipeline specialist for `java-quarkus-mq`. Your domain is the consum
 
 ## Complete Message Lifecycle (per AMQP message)
 
-```
+```text
 1. @Incoming method (consumeGithub / consumeStripe) receives Message<String>
 2. processMessage() — null-payload guard, then handleMessage()
 3. handleMessage() — deserialize JSON → MessageEnvelope; on failure: message.nack(e)
@@ -31,7 +31,7 @@ You are the pipeline specialist for `java-quarkus-mq`. Your domain is the consum
 
 ## dispatchAndComplete() Flow
 
-```
+```text
 httpDispatcher.dispatch(envelope.payload()) → DispatchResult (sealed)
   Success(apiResponse)    → persist response JSON, status=Completed, metric, webhook if callbackUrl
   RateLimited(jobId, d)  → retryAfter logged, then handleRateLimitExceeded()
@@ -40,7 +40,7 @@ httpDispatcher.dispatch(envelope.payload()) → DispatchResult (sealed)
 
 ## handleRateLimitExceeded() Flow
 
-```
+```text
 nextRetry = envelope.retryCount() + 1
 if nextRetry > config.maxRetries():
     status = DeadLettered

@@ -8,13 +8,14 @@ If a provider name is passed as $ARGUMENTS, filter output to that provider only.
 
 ### 1. RabbitMQ queue depths (via management API)
 
-```
+```bash
 curl -s -u guest:guest http://localhost:15672/api/queues/%2F
 ```
 
 Parse and display for each queue matching `api.*`:
+
 | Queue | Messages ready | Messages unacked | Consumers | Throughput (msg/s) |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | api.github.requests | N | N | N | N |
 | api.github.priority | N | N | N | N |
 | api.stripe.requests | N | N | N | N |
@@ -27,12 +28,13 @@ Flag any queue where `messages_ready > 1000` (backlog warning) or `consumers == 
 
 For each configured provider, check the bucket state. The key pattern is `rate-limit:{provider}:bucket`.
 
-```
+```bash
 docker exec redis redis-cli keys "rate-limit:*"
 ```
 
 Then for context, check raw TTL on each key:
-```
+
+```bash
 docker exec redis redis-cli ttl "rate-limit:{provider}:bucket"
 ```
 
@@ -40,7 +42,7 @@ Report: which providers have active bucket keys in Redis and their TTL.
 
 ### 3. Live token count from the app API
 
-```
+```bash
 curl -s http://localhost:8080/api/providers | jq .
 ```
 
@@ -48,7 +50,7 @@ If the endpoint is available, report the current available tokens per provider f
 
 ### 4. PostgreSQL job status counts
 
-```
+```bash
 docker exec postgres psql -U quarkus -d ratelimitdb -c "
   SELECT provider, status, COUNT(*) as count
   FROM jobs
@@ -58,7 +60,8 @@ docker exec postgres psql -U quarkus -d ratelimitdb -c "
 ```
 
 Also check dead letters:
-```
+
+```bash
 docker exec postgres psql -U quarkus -d ratelimitdb -c "
   SELECT provider, COUNT(*) as dead_count, MAX(dead_lettered_at) as last_at
   FROM dead_letters
@@ -68,7 +71,7 @@ docker exec postgres psql -U quarkus -d ratelimitdb -c "
 
 ### 5. Recent job completion rate (last 10 minutes)
 
-```
+```bash
 docker exec postgres psql -U quarkus -d ratelimitdb -c "
   SELECT provider, status, COUNT(*) as count
   FROM jobs
@@ -82,7 +85,7 @@ docker exec postgres psql -U quarkus -d ratelimitdb -c "
 
 End with a concise summary table:
 
-```
+```text
 Provider   | Queue Depth | Tokens Available | Jobs (last 10m) | Dead Letters
 -----------|-------------|------------------|-----------------|-------------
 github     | 42          | 4958             | 120 completed   | 0

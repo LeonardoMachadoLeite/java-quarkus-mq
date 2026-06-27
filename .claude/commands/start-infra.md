@@ -5,14 +5,17 @@ Start the backing services (RabbitMQ, PostgreSQL, Redis) without the application
 Run the following steps:
 
 1. Start the three infrastructure services:
-```
+
+```bash
 docker-compose up -d rabbitmq postgres redis
 ```
 
 2. Wait for all three to report `healthy`. Poll with:
-```
+
+```bash
 docker-compose ps
 ```
+
 Repeat until the `STATUS` column shows `healthy` for `rabbitmq`, `postgres`, and `redis`. Use Awaitility-style logic: check every 3 seconds, give up after 60 seconds.
 
 3. Print a summary of what is running:
@@ -21,7 +24,8 @@ Repeat until the `STATUS` column shows `healthy` for `rabbitmq`, `postgres`, and
    - Redis: `localhost:6379`
 
 4. If any service fails to reach `healthy`, show its logs:
-```
+
+```bash
 docker-compose logs <service-name>
 ```
 
