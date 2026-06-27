@@ -1,0 +1,39 @@
+# Maven build output
+target/
+.flattened-pom.xml
+
+# Quarkus
+.quarkus/
+
+# IDE — IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# IDE — Eclipse / STS
+.classpath
+.project
+.settings/
+bin/
+
+# IDE — VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets
+.env
+.env.*
+*.secret
+
+# Test reports (kept in target/ but explicit for clarity)
+surefire-reports/
+failsafe-reports/
