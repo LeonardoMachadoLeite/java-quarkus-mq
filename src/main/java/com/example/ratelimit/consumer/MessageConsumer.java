@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.smallrye.reactive.messaging.annotations.Blocking;
+import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -54,26 +55,29 @@ public class MessageConsumer {
 
     @Incoming("github-requests")
     @Blocking(ordered = false)
-    public CompletionStage<Void> consumeGithub(Message<String> message) {
+    public CompletionStage<Void> consumeGithub(Message<JsonObject> message) {
         return processMessage(message);
     }
 
     @Incoming("stripe-requests")
     @Blocking(ordered = false)
-    public CompletionStage<Void> consumeStripe(Message<String> message) {
+    public CompletionStage<Void> consumeStripe(Message<JsonObject> message) {
         return processMessage(message);
     }
 
-    private CompletionStage<Void> processMessage(Message<String> message) {
+    private CompletionStage<Void> processMessage(Message<JsonObject> message) {
         return message.getPayload() != null
                 ? handleMessage(message)
                 : message.ack();
     }
 
-    private CompletionStage<Void> handleMessage(Message<String> message) {
+    private CompletionStage<Void> handleMessage(Message<JsonObject> message) {
+        // The RabbitMQ connector delivers an application/json body as a Vert.x JsonObject,
+        // not a String, so re-encode it before handing it to Jackson (which owns the
+        // record/Instant mapping for MessageEnvelope).
         MessageEnvelope envelope;
         try {
-            envelope = objectMapper.readValue(message.getPayload(), MessageEnvelope.class);
+            envelope = objectMapper.readValue(message.getPayload().encode(), MessageEnvelope.class);
         } catch (Exception e) {
             LOG.errorf(e, "Failed to deserialize message, rejecting");
             return message.nack(e);

@@ -4,10 +4,14 @@ quarkus:
 
   datasource:
     db-kind: postgresql
-    username: quarkus
-    password: quarkus
     jdbc:
-      url: jdbc:postgresql://localhost:5432/ratelimitdb
+      # Send String params as 'unspecified' so PostgreSQL casts them into jsonb columns
+      # (Job.request / Job.response hold pre-serialized JSON strings). Without this the
+      # PG driver binds them as varchar and inserts fail: "column is of type jsonb but
+      # expression is of type character varying". Applies to dev, prod and the DevServices
+      # test datasource alike.
+      additional-jdbc-properties:
+        stringtype: unspecified
 
   hibernate-orm:
     database:
@@ -18,9 +22,6 @@ quarkus:
   flyway:
     migrate-at-start: true
 
-  redis:
-    hosts: redis://localhost:6379
-
   log:
     level: INFO
     category:
@@ -30,12 +31,9 @@ quarkus:
   http:
     port: 8080
 
-# SmallRye RabbitMQ connector connection defaults (overridable via RABBITMQ_* env vars)
-rabbitmq-host: localhost
-rabbitmq-port: 5672
-rabbitmq-username: guest
-rabbitmq-password: guest
-
+# RabbitMQ connection (rabbitmq-host/port/username/password) lives in the %dev and
+# %prod profiles, not here: leaving it out of the shared base lets the %test profile
+# fall through to Quarkus RabbitMQ DevServices, which starts a throwaway broker.
 mp:
   messaging:
     outgoing:
@@ -97,8 +95,49 @@ rate-limit:
       max-retries: 10
       max-retry-delay: PT30S
 
-"%test":
+# Dev mode and packaged (prod) runs connect to real infrastructure (see CLAUDE.md:
+# "dev services not used — infra must be up"). Tests use DevServices instead, so the
+# static JDBC URL must NOT live in the shared base config — otherwise it is inherited
+# into the %test profile and overrides the throwaway container DevServices provides.
+"%dev":
   rabbitmq-host: localhost
+  rabbitmq-port: 5672
+  rabbitmq-username: guest
+  rabbitmq-password: guest
+  quarkus:
+    datasource:
+      username: quarkus
+      password: quarkus
+      jdbc:
+        url: jdbc:postgresql://localhost:5432/ratelimitdb
+    redis:
+      hosts: redis://localhost:6379
+
+# Connection endpoints are overridable via RABBITMQ_*/QUARKUS_* env vars (see docker-compose.yml).
+"%prod":
+  rabbitmq-host: localhost
+  rabbitmq-port: 5672
+  rabbitmq-username: guest
+  rabbitmq-password: guest
+  quarkus:
+    datasource:
+      username: quarkus
+      password: quarkus
+      jdbc:
+        url: jdbc:postgresql://localhost:5432/ratelimitdb
+    redis:
+      hosts: redis://localhost:6379
+
+"%test":
+  rate-limit:
+    providers:
+      test-provider:
+        requests-per-window: 10
+        window-duration: PT1S
+        burst-capacity: 5
+        retry-delay: PT0.1S
+        max-retries: 3
+        max-retry-delay: PT5S
   quarkus:
     datasource:
       db-kind: postgresql

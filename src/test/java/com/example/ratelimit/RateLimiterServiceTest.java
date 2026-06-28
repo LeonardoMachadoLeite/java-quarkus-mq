@@ -1,40 +1,23 @@
 package com.example.ratelimit;
 
-import com.example.ratelimit.config.RateLimitConfig;
 import com.example.ratelimit.ratelimit.RateLimiterServiceImpl;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import java.time.Duration;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
+/**
+ * Uses the real {@link com.example.ratelimit.config.RateLimitConfig}: a SmallRye
+ * {@code @ConfigMapping} interface is a {@code @Dependent} bean, which {@code @InjectMock}
+ * cannot proxy. The "test-provider" limits are supplied via the %test profile in
+ * application.yaml; Redis is provided by Quarkus DevServices.
+ */
 @QuarkusTest
 class RateLimiterServiceTest {
 
-    @InjectMock
-    RateLimitConfig rateLimitConfig;
-
     @Inject
     RateLimiterServiceImpl rateLimiterService;
-
-    @BeforeEach
-    void setup() {
-        RateLimitConfig.ProviderConfig config = Mockito.mock(RateLimitConfig.ProviderConfig.class);
-        when(config.requestsPerWindow()).thenReturn(10L);
-        when(config.windowDuration()).thenReturn(Duration.ofSeconds(1));
-        when(config.burstCapacity()).thenReturn(5L);
-        when(config.retryDelay()).thenReturn(Duration.ofMillis(100));
-        when(config.maxRetries()).thenReturn(3);
-        when(config.maxRetryDelay()).thenReturn(Duration.ofSeconds(5));
-        when(rateLimitConfig.providers()).thenReturn(Map.of("test-provider", config));
-    }
 
     @Test
     void tryConsume_withinLimit_returnsTrue() {

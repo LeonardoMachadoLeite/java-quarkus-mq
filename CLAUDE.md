@@ -50,6 +50,8 @@ src/main/java/com/example/ratelimit/
 └── observability/   QueueDepthHealthCheck, RabbitMQHealthCheck, RedisHealthCheck, MetricsCollector
 ```
 
+**JSONB columns**: `Job.request` / `Job.response` are pre-serialized JSON `String`s mapped to `jsonb` columns. The datasource sets `jdbc.additional-jdbc-properties.stringtype=unspecified` so PostgreSQL casts the bound `varchar` into `jsonb`. Without it, inserts fail with *"column ... is of type jsonb but expression is of type character varying"*. Keep this property when changing datasource config.
+
 ---
 
 ## Running Locally
@@ -134,10 +136,12 @@ mp:
 ```java
 @Incoming("twilio-requests")
 @Blocking(ordered = false)
-public CompletionStage<Void> consumeTwilio(Message<String> message) {
+public CompletionStage<Void> consumeTwilio(Message<JsonObject> message) {
     return processMessage(message);
 }
 ```
+
+The payload type is `io.vertx.core.json.JsonObject`, **not** `String`: the publisher sends messages with content-type `application/json`, so the SmallRye RabbitMQ connector hands the consumer a `JsonObject`. `handleMessage` re-encodes it (`getPayload().encode()`) before passing to Jackson. Declaring `Message<String>` causes a `ClassCastException` at delivery.
 
 **Step 4 — Verify topology** `RabbitMQTopologyConfig` reads `rateLimitConfig.providers()` at startup and declares queues automatically. No code change needed there.
 
@@ -162,9 +166,17 @@ public CompletionStage<Void> consumeTwilio(Message<String> message) {
 
 ### Test profile (`%test` in application.yaml)
 
+All three backends run as throwaway containers via Quarkus DevServices — `mvn test` / `mvn verify` need no manually-started infra (only Docker):
+
 - PostgreSQL: Quarkus DevServices (Testcontainers) — no real DB needed
 - Redis: Quarkus DevServices (Testcontainers)
-- RabbitMQ: set `rabbitmq-host: localhost` and start a real container in `@BeforeAll`
+- RabbitMQ: Quarkus DevServices (Testcontainers) — auto-started by `quarkus-messaging-rabbitmq`
+
+**Config layout that makes this work**: connection endpoints (datasource `jdbc.url`/credentials, `redis.hosts`, `rabbitmq-host`/port/credentials) live **only under the `%dev` and `%prod` profiles**, never in the shared base config. A static endpoint in the base is inherited by `%test` and shadows the DevServices container, causing connection/auth failures. The `%test` profile sets only `devservices.enabled: true` and test-specific `rate-limit` providers.
+
+### Running tests
+
+`*IT` integration tests run under the **maven-failsafe-plugin** (bound to `integration-test`/`verify`), so use `mvn verify` to exercise them — `mvn test` (surefire) only runs the unit `*Test` classes and skips `*IT`. Note `JobResourceIT` is a `@QuarkusTest` (in-JVM with DevServices), not a `@QuarkusIntegrationTest`.
 
 ---
 
@@ -209,6 +221,8 @@ These are intentional deviations from a more complete production design, made du
 - **In-memory rate limit state** — must use Redis (architectural decision #2)
 - **Shared queues across providers** — each provider gets its own queues (architectural decision #3)
 - **Synchronous dispatch on the reactive thread** — always `@Blocking(ordered = false)` on consumers
+- **Calling the RabbitMQ emitter inside an active `@Transactional`** — the send runs on a Vert.x context and corrupts the JTA connection/transaction association (`Enlisted connection used without active transaction`). Persist inside a transaction (e.g. `QuarkusTransaction.requiringNew().call(...)`), then `publisher.publish(...)` **after** it commits. See `JobService.submit`.
+- **Connection endpoints in the base config profile** — datasource/Redis/RabbitMQ hosts belong under `%dev`/`%prod` only, so `%test` falls through to DevServices
 - **Polling-only or webhook-only response** — both paths must exist (architectural decision #1)
 - **Amending existing commits** — always create new commits
 - **`--no-verify`** on git hooks
