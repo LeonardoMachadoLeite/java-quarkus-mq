@@ -1,10 +1,10 @@
 package com.example.ratelimit.ratelimit;
 
 import com.example.ratelimit.config.RateLimitConfig;
-import io.bucket4j.Bandwidth;
-import io.bucket4j.BucketConfiguration;
-import io.bucket4j.distributed.ExpirationAfterWriteStrategy;
-import io.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
+import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;

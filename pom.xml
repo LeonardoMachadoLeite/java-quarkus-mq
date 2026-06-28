@@ -44,7 +44,7 @@
     <!-- Messaging -->
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-reactive-messaging-rabbitmq</artifactId>
+      <artifactId>quarkus-messaging-rabbitmq</artifactId>
     </dependency>
     <dependency>
       <groupId>com.rabbitmq</groupId>

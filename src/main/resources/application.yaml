@@ -21,18 +21,6 @@ quarkus:
   redis:
     hosts: redis://localhost:6379
 
-  rabbitmq-host: localhost
-  rabbitmq-port: 5672
-  rabbitmq-username: guest
-  rabbitmq-password: guest
-
-  smallrye-reactive-messaging:
-    rabbitmq:
-      host: ${quarkus.rabbitmq-host}
-      port: ${quarkus.rabbitmq-port}
-      username: ${quarkus.rabbitmq-username}
-      password: ${quarkus.rabbitmq-password}
-
   log:
     level: INFO
     category:
@@ -41,6 +29,12 @@ quarkus:
 
   http:
     port: 8080
+
+# SmallRye RabbitMQ connector connection defaults (overridable via RABBITMQ_* env vars)
+rabbitmq-host: localhost
+rabbitmq-port: 5672
+rabbitmq-username: guest
+rabbitmq-password: guest
 
 mp:
   messaging:
@@ -99,17 +93,17 @@ rate-limit:
       requests-per-window: 100
       window-duration: PT1S
       burst-capacity: 10
-      retry-delay: PT500MS
+      retry-delay: PT0.5S
       max-retries: 10
       max-retry-delay: PT30S
 
 "%test":
+  rabbitmq-host: localhost
   quarkus:
     datasource:
       db-kind: postgresql
       devservices:
         enabled: true
-    rabbitmq-host: localhost
     redis:
       devservices:
         enabled: true

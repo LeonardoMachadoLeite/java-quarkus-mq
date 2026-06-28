@@ -13,10 +13,10 @@ import java.net.Socket;
 @ApplicationScoped
 public class RabbitMQHealthCheck implements HealthCheck {
 
-    @ConfigProperty(name = "quarkus.rabbitmq-host", defaultValue = "localhost")
+    @ConfigProperty(name = "rabbitmq-host", defaultValue = "localhost")
     String host;
 
-    @ConfigProperty(name = "quarkus.rabbitmq-port", defaultValue = "5672")
+    @ConfigProperty(name = "rabbitmq-port", defaultValue = "5672")
     int port;
 
     @Override
